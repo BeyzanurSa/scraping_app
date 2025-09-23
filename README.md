@@ -2,16 +2,6 @@
 
 Bu proje, **Play Store** ve **App Store** yorumlarını otomatik olarak çekip analiz eden kapsamlı bir Streamlit uygulamasıdır. Verileri toplar, işler, çevirir ve görselleştirir.
 
-## 📋 İçindekiler
-
-- [Özellikler](#özellikler)
-- [Kurulum](#kurulum)
-- [Kullanım](#kullanım)
-- [Modüller](#modüller)
-- [API ve Veri Kaynakları](#api-ve-veri-kaynakları)
-- [Dosya Yapısı](#dosya-yapısı)
-- [Örnekler](#örnekler)
-- [Sorun Giderme](#sorun-giderme)
 
 ## 🚀 Özellikler
 
@@ -391,28 +381,7 @@ if st.button("🗑️ Cache Temizle"):
 - **Çeviri**: 10-20 metin/batch
 - **Versiyon Düzeltme**: 1000 satır/chunk
 - **RSS Scraping**: 2-5 sayfa/minute
-
-#### Memory Management
-- Büyük dosyalar için chunk processing
-- Session state'i düzenli temizleme
-- Unused dataframe'leri silme
-
-## 📈 Gelecek Özellikler
-
-### Planlanan İyileştirmeler
-- [ ] **Elasticsearch Entegrasyonu**: Büyük veri desteği
-- [ ] **Machine Learning**: Sentiment analizi
-- [ ] **Real-time Dashboard**: Canlı veri akışı
-- [ ] **Multi-threaded Scraping**: Hız optimizasyonu
-- [ ] **Database Backend**: PostgreSQL/MongoDB desteği
-- [ ] **API Endpoints**: REST API servisi
-- [ ] **Docker Support**: Konteyner desteği
-
-### Yeni Platform Desteği
-- [ ] **Huawei AppGallery**
-- [ ] **Amazon Appstore**
-- [ ] **Samsung Galaxy Store**
-
+-
 ## 🤝 Katkıda Bulunma
 
 1. Fork yapın
@@ -429,12 +398,6 @@ if st.button("🗑️ Cache Temizle"):
 - **Rate limiting** kurallarına uyun
 - **Kişisel veri** gizliliğini koruyun
 - **Ticari kullanım** öncesi yasal değerlendirme yapın
-
-## 📞 Destek
-
-- **Issues**: GitHub Issues bölümünü kullanın
-- **Dokumentasyon**: Bu README dosyasını güncel tutuyoruz
-- **Örnekler**: `examples/` klasöründe ek örnekler
 
 ---
 
