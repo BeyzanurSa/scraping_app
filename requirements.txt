@@ -9,17 +9,15 @@ matplotlib>=3.8.0
 numpy>=1.26.0
 google-play-scraper>=1.2.7
 
-# Çeviri kütüphanesi - Birden fazla seçenek
-# Ana tercih:
+# Çeviri kütüphanesi - googletrans 4.0.0rc1'in ihtiyaç duyduğu versiyonlar
 googletrans==4.0.0rc1
+httpx==0.13.3
+httpcore==0.9.*
 
-# Alternatif versiyonlar (yukarıdaki çalışmazsa):
+# Alternatif versiyon (yukarıdaki çalışmazsa):
 # googletrans==3.1.0a0
-# googletrans==3.0.0
-
-# googletrans bağımlılıkları - FİX EDİLDİ
-httpx==0.23.0
-httpcore==0.15.0
+# httpx>=0.20.0
+# httpcore>=0.14.0
 
 # Opsiyonel paketler
 # pillow                        # Görsel işleme için
@@ -29,8 +27,6 @@ httpcore==0.15.0
 # Eğer googletrans hatası alırsanız:
 # 1. pip uninstall googletrans httpx httpcore -y
 # 2. pip install googletrans==4.0.0rc1
-# 3. Eğer hala hata varsa: pip install googletrans==3.1.0a0
-
-# Versiyon uyumluluğu:
-# httpx 0.23.0 + httpcore 0.15.0 = Uyumlu
-# httpx 0.13.3 + httpcore 0.9.* = Eski kombinasyon
+# 
+# Alternatif kurulum:
+# pip install googletrans==3.1.0a0
