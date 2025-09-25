@@ -17,9 +17,9 @@ googletrans==4.0.0rc1
 # googletrans==3.1.0a0
 # googletrans==3.0.0
 
-# googletrans bağımlılıkları
-httpcore==0.15
-httpx==0.13.3
+# googletrans bağımlılıkları - FİX EDİLDİ
+httpx==0.23.0
+httpcore==0.15.0
 
 # Opsiyonel paketler
 # pillow                        # Görsel işleme için
@@ -27,6 +27,10 @@ httpx==0.13.3
 
 # KURULUM NOTLARİ:
 # Eğer googletrans hatası alırsanız:
-# 1. pip uninstall googletrans -y
+# 1. pip uninstall googletrans httpx httpcore -y
 # 2. pip install googletrans==4.0.0rc1
 # 3. Eğer hala hata varsa: pip install googletrans==3.1.0a0
+
+# Versiyon uyumluluğu:
+# httpx 0.23.0 + httpcore 0.15.0 = Uyumlu
+# httpx 0.13.3 + httpcore 0.9.* = Eski kombinasyon
