@@ -246,9 +246,9 @@ if submitted:
                 combined_data.append(df_play)
                 metadata['play_count'] = len(df_play)
                 
-                st.success(f"✅ Play Store: {len(df_play)} yorum işlendi")
+                st.success(f"✅ Play Store: {len(df_play)}  yorum işlendi")
             else:
-                st.warning("⚠ Play Store: Belirtilen tarih aralığında yorum bulunamadı")
+                st.warning(f"⚠️ Play Store: {package_name} için belirtilen tarih aralığında yorum bulunamadı")
                 
         except Exception as e:
             st.error(f"❌ Play Store hatası: {e}")
@@ -289,9 +289,9 @@ if submitted:
                 combined_data.append(df_app)
                 metadata['app_count'] = len(df_app)
                 
-                st.success(f"✅ App Store: {len(df_app)} yorum işlendi")
+                st.success(f"✅ App Store: {len(df_app)}  yorum işlendi")
             else:
-                st.warning("⚠ App Store: Belirtilen tarih aralığında yorum bulunamadı")
+                st.warning(f"⚠️ App Store: App ID {appstore_app_id} için belirtilen tarih aralığında yorum bulunamadı")
                 
         except Exception as e:
             st.error(f"❌ App Store hatası: {e}")
@@ -625,34 +625,33 @@ if st.session_state.scraped_data is None and not submitted:
     
     # Sistem hakkında
     st.markdown("---")
-    st.subheader("ℹ️ Sistem Özellikleri")
+    st.subheader("ℹ️ Sistem Özellikleri - Sadece Gerçek Veri")
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("""
         ### 📱 Play Store İşlemleri:
-        - **🔥 Veri Çekme** - google-play-scraper ile
+        - **🔥 Gerçek Veri** - google-play-scraper kütüphanesi
         - **🔧 Versiyon Düzeltme** - Boş versiyonları akıllı doldurma  
         - **🌍 Çeviri** - Türkçe olmayanları çevirme
         - **📊 Sütun İşleme** - Standardizasyon
         
         ### 🍎 App Store İşlemleri:
-        - **🔥 RSS Çekme** - iTunes RSS API ile
+        - **🔥 Gerçek RSS** - iTunes RSS API
         - **📊 Veri İşleme** - Tarih formatlama ve standardizasyon
         """)
     
     with col2:
         st.markdown("""
+        ### ⚠️ Önemli Notlar:
+        - **Sadece gerçek API'ler kullanılır**
+        - **Mock/sahte veri üretilmez**
+        - **Veri bulunammazsa boş sonuç döner**
+        - **Tarih aralığını genişletmeyi deneyin**
+        
         ### 📊 Analiz Özellikleri:
         - **🥧 Rating Dağılım Grafikleri**
         - **📈 Versiyon Bazında Analiz**
-        - **📊 Trend Analizi**  
-        - **🔥 Heatmap Görselleştirme**
         - **🔄 Platform Karşılaştırması**
-        
-        ### 💾 Çıktı Formatları:
-        - **CSV** - Excel uyumlu
-        - **JSON** - API entegrasyonu için
-        - **TXT** - İnsan okunabilir rapor
         """)

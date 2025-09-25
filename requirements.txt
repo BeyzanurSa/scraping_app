@@ -2,15 +2,31 @@
 streamlit>=1.32.0
 pandas>=2.2.0
 requests>=2.31.0
-googletrans==4.0.0rc1
 packaging>=23.2
 plotly>=5.19.0
 seaborn>=0.13.2
 matplotlib>=3.8.0
 numpy>=1.26.0
 google-play-scraper>=1.2.7
-# pillow                        # Ek görsel ihtiyaçlarında
+
+# Çeviri kütüphanesi - Birden fazla seçenek
+# Ana tercih:
+googletrans==4.0.0rc1
+
+# Alternatif versiyonlar (yukarıdaki çalışmazsa):
+# googletrans==3.1.0a0
+# googletrans==3.0.0
+
+# googletrans bağımlılıkları
+httpcore==0.15
+httpx==0.23.0
+
+# Opsiyonel paketler
+# pillow                        # Görsel işleme için
 # python-dateutil               # Pandas ile genelde otomatik gelir
 
-# Not:
-# googletrans yoksa çeviri bölümü orijinal metni korur.
+# KURULUM NOTLARİ:
+# Eğer googletrans hatası alırsanız:
+# 1. pip uninstall googletrans -y
+# 2. pip install googletrans==4.0.0rc1
+# 3. Eğer hala hata varsa: pip install googletrans==3.1.0a0

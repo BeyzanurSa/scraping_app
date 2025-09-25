@@ -4,17 +4,21 @@ from datetime import datetime
 from io import StringIO
 import time
 
+
+TRANSLATOR_AVAILABLE = False
+Translator = None
+
 try:
     from googletrans import Translator
     TRANSLATOR_AVAILABLE = True
 except ImportError:
-    Translator = None
     TRANSLATOR_AVAILABLE = False
+    Translator = None
 
 def detect_text_columns(df):
     """CSV'deki metin sütunlarını otomatik tespit et"""
     text_columns = []
-    possible_text_columns = ['text', 'content', 'review', 'comment', 'title', 'description', 'body']
+    possible_text_columns = ['text', 'content', 'review', 'comment', 'title']
     
     for col in df.columns:
         # Sütun adı kontrolü
@@ -34,7 +38,7 @@ def detect_text_columns(df):
 def detect_language_columns(df):
     """CSV'deki dil sütunlarını otomatik tespit et"""
     language_columns = []
-    possible_lang_columns = ['lang', 'language', 'locale', 'country_code', 'dil']
+    possible_lang_columns = ['lang', 'language', 'dil']
     
     for col in df.columns:
         if any(keyword in col.lower() for keyword in possible_lang_columns):
@@ -63,16 +67,32 @@ def is_turkish_text(text, lang_code=None):
     return turkish_ratio > 0.05  # %5'ten fazla Türkçe karakter varsa Türkçe kabul et
 
 def translate_text_batch(texts, source_lang, target_lang='tr', batch_size=10):
-    """Metinleri toplu olarak çevir"""
+    """Metinleri toplu olarak çevir - İyileştirilmiş hata yönetimi"""
     if not TRANSLATOR_AVAILABLE:
-        # googletrans yoksa orijinal metinleri döndür
         try:
-            st.warning("googletrans kütüphanesi bulunamadı. Metinler çevrilmeden korunacak.")
+            st.error("❌ googletrans kütüphanesi kullanılamıyor!")
+            st.info("📦 Manuel kurulum deneyin:")
+            st.code("""
+pip uninstall googletrans -y
+pip install googletrans==4.0.0rc1
+            """)
+            st.info("Veya alternatif:")
+            st.code("pip install googletrans==3.1.0a0")
         except:
             pass
-        return ["" if (pd.isna(t) or not str(t).strip()) else str(t) for t in texts]
+        return [str(t) if not pd.isna(t) else "" for t in texts]
     
-    translator = Translator()
+    # Translator instance oluşturmayı dene
+    try:
+        translator = Translator()
+    except Exception as e:
+        try:
+            st.error(f"❌ Translator oluşturulamadı: {e}")
+            st.info("Çeviri atlanıyor, orijinal metinler korunuyor")
+        except:
+            pass
+        return [str(t) if not pd.isna(t) else "" for t in texts]
+    
     translated_texts = []
     
     for i in range(0, len(texts), batch_size):
@@ -86,10 +106,24 @@ def translate_text_batch(texts, source_lang, target_lang='tr', batch_size=10):
                 elif source_lang.lower() == target_lang.lower():
                     batch_translated.append(str(text))
                 else:
-                    result = translator.translate(str(text), src=source_lang, dest=target_lang)
-                    batch_translated.append(result.text)
+                    # Retry mekanizması
+                    max_retries = 3
+                    for attempt in range(max_retries):
+                        try:
+                            result = translator.translate(str(text), src=source_lang, dest=target_lang)
+                            batch_translated.append(result.text)
+                            break
+                        except Exception as translate_error:
+                            if attempt == max_retries - 1:
+                                # Son deneme başarısız, orijinal metni koru
+                                batch_translated.append(str(text))
+                                try:
+                                    st.warning(f"⚠️ Çeviri hatası (orijinal korundu): {translate_error}")
+                                except:
+                                    pass
+                            else:
+                                time.sleep(1)  # Kısa bekleme
             except Exception as e:
-                st.warning(f"Çeviri hatası: {e}")
                 batch_translated.append(str(text))  # Hata durumunda orijinal metni koru
         
         translated_texts.extend(batch_translated)
@@ -98,7 +132,7 @@ def translate_text_batch(texts, source_lang, target_lang='tr', batch_size=10):
     return translated_texts
 
 def translate_reviews(df):
-    """Ana çeviri fonksiyonu - Sadece Türkçe olmayanları çevir - İYİLEŞTİRİLMİŞ"""
+    """Ana çeviri fonksiyonu - Geliştirilmiş hata yönetimi"""
     try:
         if df is None or df.empty:
             return df
@@ -121,6 +155,11 @@ def translate_reviews(df):
                 df_result['translated_text'] = df_result['content'].astype(str).fillna("")
             else:
                 df_result['translated_text'] = ""
+            
+            try:
+                st.warning("⚠️ Metin sütunu bulunamadı, translated_text boş oluşturuldu")
+            except:
+                pass
             return df_result
         
         # İlk metin sütununu çevir
@@ -134,15 +173,9 @@ def translate_reviews(df):
 
         if not TRANSLATOR_AVAILABLE:
             # Kütüphane yoksa orijinal metni koru
-            try:
-                import streamlit as st
-                st.warning("googletrans kurulu değil. translated_text orijinal metinle doldurulacak.")
-            except:
-                pass
             df_result['translated_text'] = df_result[text_column].astype(str).fillna("")
             
             try:
-                import streamlit as st
                 st.session_state.translation_stats = {
                     'total': len(df_result),
                     'translated': 0,
@@ -157,17 +190,24 @@ def translate_reviews(df):
         translated_texts = []
         skipped_count = 0
         translated_count = 0
+        error_count = 0
 
+        # Translator test et
         try:
-            translator = Translator()  # Tek örnek
-        except:
-            # Translator oluşturulamazsa fallback
+            test_translator = Translator()
+            # Basit test çevirisi
+            test_result = test_translator.translate("test", src='en', dest='tr')
+            if not test_result or not hasattr(test_result, 'text'):
+                raise Exception("Translator test başarısız")
+        except Exception as e:
             df_result['translated_text'] = df_result[text_column].astype(str).fillna("")
             return df_result
 
+        # Başarılı test sonrası çeviri işlemi
         for idx, row in df_result.iterrows():
             text = row[text_column]
             lang_code = row[lang_column] if lang_column else None
+            
             try:
                 if pd.isna(text) or not str(text).strip():
                     translated_texts.append("")
@@ -175,37 +215,80 @@ def translate_reviews(df):
                     translated_texts.append(str(text))
                     skipped_count += 1
                 else:
-                    result = translator.translate(str(text), src='auto', dest='tr')
-                    translated_texts.append(result.text)
-                    translated_count += 1
-                if idx % 10 == 0 and idx > 0:
-                    time.sleep(0.5)
+                    # Çeviri işlemi - retry ile
+                    max_retries = 2
+                    success = False
+                    
+                    for attempt in range(max_retries):
+                        try:
+                            translator = Translator()
+                            result = translator.translate(str(text), src='auto', dest='tr')
+                            translated_texts.append(result.text)
+                            translated_count += 1
+                            success = True
+                            break
+                        except Exception as translate_error:
+                            if attempt == max_retries - 1:
+                                # Son deneme başarısız
+                                translated_texts.append(str(text))
+                                error_count += 1
+                            else:
+                                time.sleep(1)
+                    
+                # Progress göster (her 50 öğede bir)
+                if idx % 50 == 0 and idx > 0:
+                    try:
+                        st.info(f"📊 İşlenen: {idx}/{len(df_result)} - Çevrilen: {translated_count}, Türkçe: {skipped_count}, Hata: {error_count}")
+                    except:
+                        pass
+                    time.sleep(0.2)
+                    
             except Exception as e:
                 translated_texts.append(str(text))
+                error_count += 1
 
         df_result['translated_text'] = translated_texts
         
-        # İstatistikleri session state'e kaydet (sadece streamlit kontekstinde)
+        # İstatistikleri session state'e kaydet
         try:
-            import streamlit as st
             st.session_state.translation_stats = {
                 'total': len(df_result),
                 'translated': translated_count,
                 'skipped_turkish': skipped_count,
-                'empty_or_error': len(df_result) - translated_count - skipped_count
+                'empty_or_error': error_count
             }
+            
+            # Sonuç özeti göster
+            if translated_count > 0 or skipped_count > 0:
+                st.success(f"""
+                ✅ **Çeviri tamamlandı!**
+                - 🌍 Çevrilen: {translated_count}
+                - 🇹🇷 Türkçe atlanan: {skipped_count}
+                - ❌ Hata/Boş: {error_count}
+                - 📊 Toplam: {len(df_result)}
+                """)
+            else:
+                st.warning("⚠️ Hiçbir metin çevrilemedi")
+                
         except:
-            pass  # Streamlit context yoksa ignore et
+            pass
         
         return df_result
 
     except Exception as e:
         try:
-            import streamlit as st
-            st.error(f"Çeviri hatası: {e}")
+            st.error(f"❌ Çeviri işlemi genel hatası: {e}")
+            st.info("Orijinal veriler korunuyor")
         except:
             pass
-        return df
+        
+        # Hata durumunda orijinal veriyi döndür
+        df_result = df.copy()
+        if 'content' in df.columns:
+            df_result['translated_text'] = df_result['content'].astype(str).fillna("")
+        else:
+            df_result['translated_text'] = ""
+        return df_result
 
 def main():
     st.set_page_config(
@@ -214,11 +297,7 @@ def main():
         layout="wide"
     )
     
-    # Ana içerik başında kütüphane durumu kontrolü
-    if not TRANSLATOR_AVAILABLE:
-        st.error("❌ googletrans kütüphanesi yüklü değil!")
-        st.info("📦 Kurulum: `pip install googletrans==4.0.0rc1` veya `pip install googletrans==3.1.0a0`")
-    
+    # Ana başlık - sadeleştirilmiş
     st.title("🌐 Smart Review Translator")
     st.markdown("📝 Türkçe yorumları koruyarak diğer dilleri Türkçe'ye çevirin")
     st.markdown("---")

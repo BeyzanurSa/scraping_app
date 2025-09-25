@@ -570,8 +570,8 @@ def main():
 # Koordinatör için ana fonksiyon - İyileştirilmiş
 def scrape_app_store_reviews(app_id: str, max_pages: int = 30, country: str = 'tr',
                            start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
-                           max_reviews: Optional[int] = None):  # YENİ PARAMETRE
-    """Ana koordinatör tarafından çağrılacak fonksiyon - İyileştirilmiş"""
+                           max_reviews: Optional[int] = None):
+    """Ana koordinatör tarafından çağrılacak fonksiyon - Sadece gerçek RSS API"""
     try:
         # MAX_REVIEWS LİMİT KONTROLÜ
         if max_reviews:
@@ -579,7 +579,7 @@ def scrape_app_store_reviews(app_id: str, max_pages: int = 30, country: str = 't
             estimated_pages = min(max_pages, math.ceil(max_reviews / 15) + 5)  # +5 güvenlik marjı
             max_pages = estimated_pages
         
-        # Gerçek RSS API çağrısı dene
+        # RSS API çağrısı
         scraper = SafeRSSAppStoreScraper()
         
         # Tarih string'lerini hazırla
@@ -593,69 +593,29 @@ def scrape_app_store_reviews(app_id: str, max_pages: int = 30, country: str = 't
             delay_range=(2, 4),
             start_date_filter=start_date_str,
             end_date_filter=end_date_str,
-            max_reviews=max_reviews  # YENİ PARAMETRE GEÇIR
+            max_reviews=max_reviews
         )
         
         if reviews and len(reviews) > 0:
+            try:
+                import streamlit as st
+                st.success(f"✅ App Store RSS: {len(reviews)} gerçek yorum alındı")
+            except:
+                pass
             return reviews
         else:
-            # Fallback: Mock data - COUNT KONTROLÜ İLE
-            import random
-            from datetime import datetime, timedelta
-            
-            mock_count = min(max_reviews or 200, 200)  # Mock için limit
-            
-            mock_reviews = []
-            turkish_titles = [
-                "Harika uygulama",
-                "Çok beğendim", 
-                "Sorunlu",
-                "Mükemmel",
-                "Geliştirilmeli",
-                "Süper çalışıyor",
-                "Tavsiye ederim"
-            ]
-            
-            turkish_contents = [
-                "Bu uygulama gerçekten çok kullanışlı ve pratik",
-                "Harika bir tasarım ve kolay kullanım",
-                "Bazen donuyor, düzeltilmesi gerekiyor", 
-                "Mükemmel çalışıyor, hiç sorun yok",
-                "Arayüz biraz karışık, basitleştirilmeli",
-                "Çok hızlı ve güvenilir çalışıyor",
-                "Herkese tavsiye ederim, mükemmel uygulama"
-            ]
-            
-            versions = ["2.1.0", "2.0.5", "2.0.4", "1.9.8", "1.9.7"]
-            now = datetime.now()
-            
-            # Mock data oluştur - tarih filtresi ile
-            for i in range(mock_count):
-                review_date = now - timedelta(days=i)
-                
-                # Tarih filtresi uygula
-                if start_date and review_date < start_date:
-                    continue
-                if end_date and review_date > end_date:
-                    continue
-                
-                mock_reviews.append({
-                    'title': turkish_titles[i % len(turkish_titles)],
-                    'content': turkish_contents[i % len(turkish_contents)],
-                    'rating': random.choice([1, 2, 3, 4, 5]),
-                    'author': f'Kullanıcı{i+1}',
-                    'date': review_date.strftime('%Y-%m-%d'),
-                    'version': versions[i % len(versions)],
-                    'page': (i // 15) + 1,
-                    'method': 'rss_mock'
-                })
-            
-            return mock_reviews
+            # Mock veri yok - sadece boş liste döndür
+            try:
+                import streamlit as st
+                st.warning(f"⚠️ App Store RSS API'dan veri alınamadı (App ID: {app_id})")
+            except:
+                pass
+            return []
         
     except Exception as e:
         try:
             import streamlit as st
-            st.error(f"App Store RSS scraping hatası: {e}")
+            st.error(f"❌ App Store RSS scraping hatası: {e}")
         except:
             pass
         return []
