@@ -19,7 +19,7 @@ googletrans==4.0.0rc1
 
 # googletrans bağımlılıkları
 httpcore==0.15
-httpx==0.23.0
+httpx==0.13.3
 
 # Opsiyonel paketler
 # pillow                        # Görsel işleme için
