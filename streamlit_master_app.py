@@ -263,7 +263,7 @@ if submitted:
             
             app_raw = scrape_app_store_reviews(
                 app_id=str(appstore_app_id), 
-                max_pages=10, 
+                max_pages=20, 
                 country='tr',
                 start_date=start_datetime,
                 end_date=end_datetime,
