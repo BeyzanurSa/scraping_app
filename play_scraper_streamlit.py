@@ -150,8 +150,8 @@ def scrape_play_reviews(package_name: str,
 
 def main():
     if st:
-        st.title("📱 Google Play Store Scraper (Gerçek Veri)")
-        st.markdown("google-play-scraper kütüphanesini kullanarak gerçek Play Store yorumları çeker")
+        st.title("📱 Google Play Store Scraper ")
+        st.markdown("google-play-scraper kütüphanesini kullanarak Play Store yorumları çeker")
         
         # Kontrol: Kütüphane yüklü mü?
         try:
@@ -183,7 +183,7 @@ def main():
                 data = scrape_play_reviews(package, count, 'tr', start_dt, end_dt)
             
             if data:
-                st.success(f"✅ {len(data)} gerçek yorum alındı!")
+                st.success(f"✅ {len(data)} yorum alındı!")
                 
                 # İstatistikler
                 df = pd.DataFrame(data)
